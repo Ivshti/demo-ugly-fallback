@@ -20,13 +20,12 @@ function frameSetup(width, height, pixelFormat)
     canvas.height = height; 
 
     var ctx = canvas.getContext('2d');
-    var img = ctx.createImageData(width, height);;
-    
+    var img = ctx.createImageData(width, height);
+    var buf;
 
     vlcPlayer.onFrameReady = function render( videoFrame )
     {
-        //console.log("frame ready");
-        img.data.set(videoFrame)
+        set_frame(img.data, videoFrame, width, height); 
         ctx.putImageData(img, 0, 0);
     }
 
@@ -50,6 +49,18 @@ var yuv_to_rgba = function (y, u, v,width,height, rgba) {
     };
     return rgba;
 };
+
+var set_frame = function(buf, frame, width, height) {
+    for (var i = 0; i < height; ++i) {
+        for (var j = 0; j < width; ++j) {
+            var o = (j + (width*i))*4;
+            buf[o + 0] = frame[o+2];
+            buf[o + 1] = frame[o+1];
+            buf[o + 2] = frame[o+0];
+            buf[o + 3] = frame[o+3];
+        }
+    };    
+}
 
 function init()
 {
