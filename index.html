@@ -33,10 +33,11 @@ function frameSetup(width, height, pixelFormat)
         var u = videoFrame.subarray(videoFrame.uOffset, videoFrame.vOffset);
         var v = videoFrame.subarray(videoFrame.vOffset, len);
 
+        if (drawn) return; drawn=true; // TMP draw first frame because we polute the thread so much we have no drawing otherwise :)
+
         var buf = yuv_to_rgba(y,u,v,videoFrame.width,videoFrame.height, img.data);
         ctx.putImageData(img, 0, 0);
 
-        if (drawn) return; drawn=true; // TMP draw first frame because we polute the thread so much we have no drawing otherwise :)
     }
 
 }
