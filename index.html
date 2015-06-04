@@ -1,0 +1,76 @@
+<html>
+<style>
+body,html{width: 100%; height: 100%;padding: 0px;margin:0px;}
+</style>
+<script>
+
+
+var vlcPlayer;
+
+function glCanvas()
+{
+    return document.getElementById("glCanvas");
+}
+
+
+function frameSetup(width, height, pixelFormat)
+{
+    canvas = glCanvas();
+
+    canvas.width = width;
+    canvas.height = height; 
+
+    var ctx = canvas.getContext('2d');
+    var img = ctx.createImageData(width, height);;
+    
+    var drawn = false; // TMP
+
+    vlcPlayer.onFrameReady = function render( videoFrame )
+    {
+        var len = videoFrame.length;
+
+        var y = videoFrame.subarray(0, videoFrame.uOffset);
+        var u = videoFrame.subarray(videoFrame.uOffset, videoFrame.vOffset);
+        var v = videoFrame.subarray(videoFrame.vOffset, len);
+
+        var buf = yuv_to_rgba(y,u,v,videoFrame.width,videoFrame.height, img.data);
+        ctx.putImageData(img, 0, 0);
+
+        if (drawn) return; drawn=true; // TMP draw first frame because we polute the thread so much we have no drawing otherwise :)
+    }
+
+}
+
+var yuv_to_rgba = function (y, u, v,width,height, rgba) {
+    //var rgba = new Uint8Array(width*height*4); // lol
+    for (var i = 0; i < height; ++i) {
+        var q = (i * width) | 0;
+        var p = (q >> 2) | 0;
+        for (var j = 0; j < width; ++j) {
+            var qj = (q + j) | 0;
+            var qj4 = (qj * 4) | 0;
+            var pj = (p + ((j >> 1) | 0)) | 0;
+            var x = (1.164 * (y[qj] - 16)) | 0;
+            rgba[qj4 + 0] = (x + 1.596 * (v[pj] - 128)) | 0;
+            rgba[qj4 + 1] = (x - 0.391 * (u[pj] - 128) - 0.813 * (v[pj] - 128)) | 0;
+            rgba[qj4 + 2] = (x + 2.018 * (u[pj] - 128)) | 0;
+            rgba[qj4 + 3] = 255;
+        }
+    };
+    return rgba;
+};
+
+function init()
+{
+    var wcAddon = require("../../build/Release/WebChimera.js.node");
+
+    vlcPlayer = wcAddon.createPlayer();
+    vlcPlayer.onFrameSetup = frameSetup;
+    vlcPlayer.play(process.env.VIDEO || "rtmp://video1.earthcam.com:1935/earthcamtv/Stream1");
+}
+
+</script>
+<body onload="init();">
+<canvas id="glCanvas" style="width: 100%; height: 100%;"></canvas>
+</body>
+</html>
