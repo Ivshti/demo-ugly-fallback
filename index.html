@@ -31,25 +31,7 @@ function frameSetup(width, height, pixelFormat)
 
 }
 
-var yuv_to_rgba = function (y, u, v,width,height, rgba) {
-    //var rgba = new Uint8Array(width*height*4); // lol
-    for (var i = 0; i < height; ++i) {
-        var q = (i * width) | 0;
-        var p = (q >> 2) | 0;
-        for (var j = 0; j < width; ++j) {
-            var qj = (q + j) | 0;
-            var qj4 = (qj * 4) | 0;
-            var pj = (p + ((j >> 1) | 0)) | 0;
-            var x = (1.164 * (y[qj] - 16)) | 0;
-            rgba[qj4 + 0] = (x + 1.596 * (v[pj] - 128)) | 0;
-            rgba[qj4 + 1] = (x - 0.391 * (u[pj] - 128) - 0.813 * (v[pj] - 128)) | 0;
-            rgba[qj4 + 2] = (x + 2.018 * (u[pj] - 128)) | 0;
-            rgba[qj4 + 3] = 255;
-        }
-    };
-    return rgba;
-};
-
+// Does rv32 -> rgba convertion
 var set_frame = function(buf, frame, width, height) {
     for (var i = 0; i < height; ++i) {
         for (var j = 0; j < width; ++j) {
