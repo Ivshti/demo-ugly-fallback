@@ -16,28 +16,18 @@ function glCanvas()
 function frameSetup(width, height, pixelFormat)
 {
     canvas = glCanvas();
-
     canvas.width = width;
     canvas.height = height; 
 
     var ctx = canvas.getContext('2d');
     var img = ctx.createImageData(width, height);;
     
-    var drawn = false; // TMP
 
     vlcPlayer.onFrameReady = function render( videoFrame )
     {
-        var len = videoFrame.length;
-
-        var y = videoFrame.subarray(0, videoFrame.uOffset);
-        var u = videoFrame.subarray(videoFrame.uOffset, videoFrame.vOffset);
-        var v = videoFrame.subarray(videoFrame.vOffset, len);
-
-        if (drawn) return; drawn=true; // TMP draw first frame because we polute the thread so much we have no drawing otherwise :)
-
-        var buf = yuv_to_rgba(y,u,v,videoFrame.width,videoFrame.height, img.data);
+        //console.log("frame ready");
+        img.data.set(videoFrame)
         ctx.putImageData(img, 0, 0);
-
     }
 
 }
@@ -66,6 +56,7 @@ function init()
     var wcAddon = require("../../build/Release/WebChimera.js.node");
 
     vlcPlayer = wcAddon.createPlayer();
+    vlcPlayer.pixelFormat = vlcPlayer.RV32;
     vlcPlayer.onFrameSetup = frameSetup;
     vlcPlayer.play(process.env.VIDEO || "rtmp://video1.earthcam.com:1935/earthcamtv/Stream1");
 }
